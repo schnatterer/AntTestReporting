@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+
+<project name="AntTestReporting" basedir="." default="jar">
+
+	<!-- general -->
+	<property name="DEBUG" value="true" />
+	<property name="VERBOSE" value="true" />
+	<property name="TARGET" value="1.6" />
+
+	<!-- folder -->
+	<property name="build.dir" value="bin" />
+	<property name="src" value="src" />
+	<property name="lib" value="lib" />
+
+	<!-- classpath -->
+	<path id="classpath">
+		<fileset dir="${lib}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- targets -->
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="compile" depends="clean">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${build.dir}/build" />
+		
+		<!-- Create the time stamp -->
+		<tstamp>
+			<format property="lastUpdated" pattern="yyyy-MM-dd HH:mm:ss" />
+		</tstamp>
+			
+		<javac target="${TARGET}" debug="${DEBUG}" verbose="${VERBOSE}" classpathref="classpath" optimize="true" destdir="${build.dir}">
+			<src path="${src}" />
+		</javac>
+
+		<fileset id="srcFiles" dir="${src}">
+		   	<exclude name="**/*.java"/>
+			<exclude name="**/*.html"/>
+			<include name="**/*.*" />
+		</fileset>
+		
+		<copy todir="${build.dir}">
+			<fileset refid="srcFiles"/>
+		</copy>
+		
+	</target>
+
+	<!-- <target name="jar" depends="compile, test">  -->
+	<target name="jar" depends="compile">
+
+		<jar jarfile="${build.dir}/build/${ant.project.name}.jar" basedir="${build.dir}">
+			<manifest>
+				<attribute name="Build-Time" value="${lastUpdated}" />
+				<attribute name="Main-Class" value="com.some.pckge.SomeClass"/>
+			</manifest>
+		</jar>
+		
+		<!-- Remove contents of build dir after packaging -->
+		<!-- <delete>
+		   <fileset dir="${build.dir}">
+		   	<include name="**/*.*" />
+		   </fileset>
+		</delete> -->
+	</target>
+
+</project>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+<project name="AntTestReporting-test" basedir="." default="all-test" xmlns:jacoco="antlib:org.jacoco.ant">
+
+	<import file="build.xml" />
+	
+	<!-- PDF-Reports for JUnit -->
+	<import file="lib/ant/junitpdfreport/build-junitpdfreport.xml" />
+
+	<!-- Java Code Coverage -->
+	<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+		<classpath path="lib/ant/jacoco/lib/jacocoant.jar" />
+	</taskdef>
+
+	<property name="test.build.dir" location="bin/test" />
+	<property name="test.src" location="test" />
+	<property name="test.data.dir" location="${test.build.dir}/testResults" />
+	<property name="reports.dir" location="${test.build.dir}/reports" />
+	<property name="test.reports.dir" location="${reports.dir}/junit" />
+	<property name="coverage.reports.dir" location="${reports.dir}/coverage" />
+
+	<property name="xms" value="-Xms256m" />
+	<property name="xmx" value="-Xmx1024m" />
+	<!-- <property name="log4j.config" value="-Dlog4j.configuration=file:/${base.dir}/test/log4j-test.properties" /> -->
+
+	<path id="classpath.test">
+		<pathelement location="${build.dir}" />
+		<fileset dir="${lib}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<target name="compile-test" depends="compile">
+		<mkdir dir="${test.build.dir}" />
+		
+		<javac destdir="${build.dir}" srcdir="${test.src}" includeantruntime="false">
+			<classpath refid="classpath.test" />
+		</javac>
+
+		<fileset id="srcFiles" dir="${test.src}">
+			<exclude name="**/*.java" />
+			<exclude name="**/*.html" />
+			<exclude name="**/*.xsl" />
+			<include name="**/*.*" />
+		</fileset>
+
+		<copy todir="${test.build.dir}">
+			<fileset refid="srcFiles" />
+		</copy>
+	</target>
+
+	<target name="clean-compile-test">
+		<delete>
+			<fileset dir="${test.build.dir}" includes="**/*.*" />
+		</delete>
+	</target>
+
+	<target name="test" depends="compile-test">
+		<mkdir dir="${test.data.dir}" />
+
+		<!-- Run all tests -->
+		<jacoco:coverage destfile="${test.data.dir}/jacoco.exec">
+			<junit printsummary="true" haltonfailure="false" fork="yes" forkmode="once">
+				<jvmarg value="${xms}" />
+				<jvmarg value="${xmx}" />
+				<!-- <jvmarg value="${log4j.config}" /> -->
+				<classpath refid="classpath.test" />
+				<formatter type="xml" />
+				<batchtest todir="${test.data.dir}">
+					<fileset dir="${build.dir}">
+						<!-- Exclude inner classes -->
+						<exclude name="**/*$*.class" />
+						<include name="**/*Test.class" />
+					</fileset>
+				</batchtest>
+			</junit>
+		</jacoco:coverage>
+
+		<!-- Generate HTML report
+			- junit-noframes.html -> Single page HTML-report 
+			- index.html -> HTML-report using frames (several files, but more comfortable to read)-->
+		<junitreport todir="${test.data.dir}">
+			<fileset dir="${test.data.dir}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report styledir="test/etc/junitreport" format="noframes" todir="${test.reports.dir}" />
+			<report styledir="test/etc/junitreport" format="frames" todir="${test.reports.dir}" />
+		</junitreport>
+
+
+		<!-- Generate PDF report -->
+		<junitpdfreport todir="${test.reports.dir}" styledir="../../../test/etc/junitpdfreport/default">
+			<fileset dir="${test.data.dir}">
+				<include name="TEST-*.xml" />
+			</fileset>
+		</junitpdfreport>
+
+		<!-- Generate Code Coverage report
+			See: http://www.eclemma.org/jacoco/trunk/doc/ant.html -->
+		<jacoco:report>
+			<executiondata>
+				<file file="${test.data.dir}/jacoco.exec" />
+			</executiondata>
+
+			<structure name="AntTestReporting">
+				<classfiles>
+					<fileset dir="${build.dir}">
+						<include name="**/*.class" />
+						<!-- Exclude classes necessary for testing only from the code coverage report-->
+						<exclude name="**/*Test*.class" />
+						<!-- Exclude inner classes -->
+						<exclude name="**/*$*.class" />
+					</fileset>
+				</classfiles>
+			</structure>
+
+			<html destdir="${coverage.reports.dir}" />
+		</jacoco:report>
+	</target>
+
+	<target name="all-test" depends="test" />
+</project>
