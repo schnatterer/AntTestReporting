@@ -3,7 +3,7 @@ AntTestReporting
 
 This is a demo project (Eclipse) that shows how to automatically generate reports that visualize the results of JUnit tests and code coverage measurements.
 
-See [blogpost](https://itaffinity.wordpress.com/2012/06/05/generating-and-customizing-junit-and-code-coverage-reports-with-ant/).
+See [blog post](https://itaffinity.wordpress.com/2012/06/05/generating-and-customizing-junit-and-code-coverage-reports-with-ant/).
 
 Exemplary reports generated using this setup can be found on the github page:
 
