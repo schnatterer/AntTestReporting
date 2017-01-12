@@ -38,7 +38,7 @@ public class SomeClassTest {
 	@Test
 	public void SomeMethodFailure() {
 		SomeClass someClass = new SomeClass();
-		assertEquals("Call returned unexpected int val.", someClass.someMethod(1), 0);
+		assertEquals("Call returned unexpected int val.", someClass.someMethod(1), 1);
 	}
 	
 	@Test
